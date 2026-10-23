@@ -12,6 +12,8 @@ Color-coded text over your character as your prayer runs low.
 - **Everything is adjustable:** every warning, threshold, color, timer and the text height can be changed or turned off in the plugin's settings.
 - **Optional:** only show the low and really low warnings while a prayer is active.
 - **Reappears when you pray:** turning a prayer on brings the warning back and restarts its hide timer.
+- **Stays on while praying or in combat:** the warnings do not hide while a prayer is active or you are in combat. The hide delay starts once both stop.
+- **Hide in combat without prayer:** optionally hides all warnings while you fight with no prayer active.
 
 ## Notes
 

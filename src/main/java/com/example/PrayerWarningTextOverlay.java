@@ -85,13 +85,26 @@ public class PrayerWarningTextOverlay extends Overlay
         }
         wasPraying = praying;
 
+        // While praying or in combat the warning stays on, and the hide delay restarts when that ends
+        boolean keepOn = config.stayOnWhilePraying() && (praying || inCombat(now));
+        if (keepOn)
+        {
+            tierSinceTick = now;
+        }
+
+        // Fighting without a prayer on: keep the warning off
+        if (config.hideInCombatWithoutPrayer() && !praying && inCombat(now))
+        {
+            return null;
+        }
+
         String text;
         Color color;
 
         switch (tier)
         {
             case OUT:
-                if (config.hideOutOfCombat() && !shouldKeepOutText(now))
+                if (config.hideOutOfCombat() && !keepOn && !shouldKeepOutText(now))
                 {
                     return null;
                 }
@@ -104,7 +117,7 @@ public class PrayerWarningTextOverlay extends Overlay
                 {
                     return null;
                 }
-                if (config.reallyLowHideEnabled() && delayPassed(now, config.reallyLowHideSeconds()))
+                if (config.reallyLowHideEnabled() && !keepOn && delayPassed(now, config.reallyLowHideSeconds()))
                 {
                     return null;
                 }
@@ -117,7 +130,7 @@ public class PrayerWarningTextOverlay extends Overlay
                 {
                     return null;
                 }
-                if (config.lowHideEnabled() && delayPassed(now, config.lowHideSeconds()))
+                if (config.lowHideEnabled() && !keepOn && delayPassed(now, config.lowHideSeconds()))
                 {
                     return null;
                 }
@@ -194,6 +207,13 @@ public class PrayerWarningTextOverlay extends Overlay
         int combatEnded = lastCombatTick + combatTicks;
         int countdownStart = Math.max(tierSinceTick, combatEnded);
         return now - countdownStart <= delayTicks;
+    }
+
+    /** True if you dealt or took a hit within the combat timeout. */
+    private boolean inCombat(int now)
+    {
+        int sinceCombat = now - lastCombatTick;
+        return sinceCombat >= 0 && sinceCombat <= toTicks(config.combatSeconds());
     }
 
     private static int toTicks(int seconds)

@@ -108,6 +108,30 @@ public interface PrayerWarningTextConfig extends Config
         return true;
     }
 
+    @ConfigItem(
+            keyName = "stayOnWhilePraying",
+            name = "Stay on while praying or in combat",
+            description = "The warnings do not hide while a prayer is active or you are in combat. The hide delay starts once both stop",
+            position = 5,
+            section = textSection
+    )
+    default boolean stayOnWhilePraying()
+    {
+        return true;
+    }
+
+    @ConfigItem(
+            keyName = "hideInCombatWithoutPrayer",
+            name = "Hide in combat without prayer",
+            description = "Hides all warnings while you are in combat and no prayer is active. They come back when you turn a prayer on or the fight ends",
+            position = 6,
+            section = textSection
+    )
+    default boolean hideInCombatWithoutPrayer()
+    {
+        return false;
+    }
+
     // ---------- Low prayer ----------
 
     @ConfigItem(
@@ -287,11 +311,11 @@ public interface PrayerWarningTextConfig extends Config
         return true;
     }
 
-    @Range(min = 1, max = 300)
+    @Range(min = 10, max = 300)
     @ConfigItem(
             keyName = "outOfCombatSeconds",
             name = "Hide delay (seconds)",
-            description = "How many seconds the out of prayer text stays on after your prayer runs out or your combat ends",
+            description = "How many seconds the out of prayer text stays on after your prayer runs out or your combat ends (minimum 10)",
             position = 4,
             section = outSection
     )
