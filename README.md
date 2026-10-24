@@ -2,10 +2,6 @@
 
 Shows a short warning above your character when your prayer is getting low, so you notice before it runs out.
 
-## Why
-
-Most low prayer warnings give you one message that stays on screen until you fix it. I wanted warnings that get more urgent as prayer drops, and that go away on their own, so there's no text stuck over my head while I run around on purpose with no prayer.
-
 ## What it does
 
 There are three warnings. Each has its own threshold, color and on/off switch.
