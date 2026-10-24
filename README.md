@@ -1,21 +1,33 @@
 # Prayer Warning Text
 
-Color-coded text over your character as your prayer runs low.
+Shows a short warning above your character when your prayer is getting low, so you notice before it runs out.
 
-## Features
+## Why
 
-- **Low prayer warning:** text appears once your prayer drops to a threshold you choose (off-white by default).
-- **Really low warning:** a second threshold switches the text to orange.
-- **Out of prayer:** when your prayer runs out the text turns red. It stays on while you are in combat. When you are not in combat it clears itself after a delay you choose, so it is not sitting over your head while you run around with no prayer.
-- **Hide delays:** the low and really low warnings can also hide themselves after a delay you choose.
-- **Custom text:** use `{points}` to show your current prayer points, e.g. `LOW PRAYER: {points}`. The out-of-prayer message can be different.
-- **Everything is adjustable:** every warning, threshold, color, timer and the text height can be changed or turned off in the plugin's settings.
-- **Optional:** only show the low and really low warnings while a prayer is active.
-- **Reappears when you pray:** turning a prayer on brings the warning back and restarts its hide timer.
-- **Stays on while praying or in combat:** the warnings do not hide while a prayer is active or you are in combat. The hide delay starts once both stop.
-- **Hide in combat without prayer:** optionally hides all warnings while you fight with no prayer active.
+Most low prayer warnings give you one message that stays on screen until you fix it. I wanted warnings that get more urgent as prayer drops, and that go away on their own, so there's no text stuck over my head while I run around on purpose with no prayer.
+
+## What it does
+
+There are three warnings. Each has its own threshold, color and on/off switch.
+
+| Warning | Default threshold | Default color |
+|---|---|---|
+| Low prayer | 20 or below | White |
+| Really low | 10 or below | Orange |
+| Out of prayer | 0 | Red |
+
+The text stays on while you have a prayer active or you're in combat. Once both stop, it hides after a delay you choose. If you'd rather it never hide, you can turn the delays off.
+
+A few extra options:
+
+- Bring the warning back when you turn a prayer on.
+- Hide all warnings while you're fighting with no prayer active.
+- Only show the low and really low warnings while a prayer is on.
+- Change the text, the height above your head, and how long you count as "in combat".
 
 ## Notes
 
-- "In combat" means you dealt or took a hit within the combat timeout (10 seconds by default).
-- This plugin only draws text. It does not click, type, or change anything in the game.
+- You count as in combat for 10 seconds (by default) after you deal or take a hit.
+- The out-of-prayer hide delay can't go below 10 seconds.
+- You can put `{points}` in the warning text to show your current prayer points, for example `LOW PRAYER: {points}`.
+- The plugin only draws text. It doesn't click, type or change anything in the game.
