@@ -14,6 +14,7 @@ import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.OverlayUtil;
+import com.example.PrayerWarningTextConfig.VisibilityMode;
 
 public class PrayerWarningTextOverlay extends Overlay
 {
@@ -81,23 +82,25 @@ public class PrayerWarningTextOverlay extends Overlay
             tierSinceTick = now;
         }
 
-        // Turning a prayer on restarts the hide timer so the warning comes back
+        VisibilityMode mode = config.visibilityMode();
+
+        // Turning a prayer on always restarts the hide timer, so the warning comes back
         boolean praying = isAnyPrayerActive();
-        if (config.reappearOnPrayer() && praying && !wasPraying)
+        if (praying && !wasPraying)
         {
             tierSinceTick = now;
         }
         wasPraying = praying;
 
-        // While praying or in combat the warning stays on, and the hide delay restarts when that ends
-        boolean keepOn = config.stayOnWhilePraying() && (praying || inCombat(now));
+        // Every mode except "Hide after delay only" keeps the warning on while praying or in combat
+        boolean keepOn = mode != VisibilityMode.DELAY_ONLY && (praying || inCombat(now));
         if (keepOn)
         {
             tierSinceTick = now;
         }
 
         // Fighting without a prayer on: keep the warning off
-        if (config.hideInCombatWithoutPrayer() && !praying && inCombat(now))
+        if (mode == VisibilityMode.HIDE_IN_COMBAT && !praying && inCombat(now))
         {
             return null;
         }
@@ -117,7 +120,7 @@ public class PrayerWarningTextOverlay extends Overlay
                 break;
 
             case REALLY_LOW:
-                if (config.onlyWhilePraying() && !isAnyPrayerActive())
+                if (mode == VisibilityMode.ONLY_WHILE_PRAYING && !praying)
                 {
                     return null;
                 }
@@ -130,7 +133,7 @@ public class PrayerWarningTextOverlay extends Overlay
                 break;
 
             case LOW:
-                if (config.onlyWhilePraying() && !isAnyPrayerActive())
+                if (mode == VisibilityMode.ONLY_WHILE_PRAYING && !praying)
                 {
                     return null;
                 }
@@ -150,7 +153,14 @@ public class PrayerWarningTextOverlay extends Overlay
         {
             return null;
         }
+
+        // Keeps older custom text with {points} working, and adds the number if the toggle is on
+        boolean hasPlaceholder = text.contains("{points}");
         text = text.replace("{points}", String.valueOf(points));
+        if (config.showPoints() && !hasPlaceholder)
+        {
+            text = text + " " + points;
+        }
 
         // Optional blink for the out of prayer warning: on for half a second, off for half a second
         if (tier == Tier.OUT && config.blinkOutOfPrayer() && (System.currentTimeMillis() / 500) % 2 == 1)

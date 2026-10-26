@@ -57,7 +57,7 @@ public interface PrayerWarningTextConfig extends Config
     @ConfigItem(
             keyName = "text",
             name = "Warning text",
-            description = "Text shown for the low and really low warnings, use {points} to show your current prayer points, e.g. LOW PRAYER: {points}",
+            description = "Text shown for the low and really low warnings. Use {points} to show your current prayer points, e.g. LOW PRAYER: {points}",
             position = 0,
             section = textSection
     )
@@ -69,7 +69,7 @@ public interface PrayerWarningTextConfig extends Config
     @ConfigItem(
             keyName = "outText",
             name = "Out of prayer text",
-            description = "Text shown when your prayer has run out, use {points} to show your current prayer points",
+            description = "Text shown when your prayer has run out. Use {points} to show your current prayer points",
             position = 1,
             section = textSection
     )
@@ -91,52 +91,37 @@ public interface PrayerWarningTextConfig extends Config
         return 0;
     }
 
+    enum VisibilityMode
+    {
+        STAY_ON("Stay on while praying or in combat"),
+        DELAY_ONLY("Hide after delay only"),
+        ONLY_WHILE_PRAYING("Only while praying"),
+        HIDE_IN_COMBAT("Hide in combat without prayer");
+
+        private final String label;
+
+        VisibilityMode(String label)
+        {
+            this.label = label;
+        }
+
+        @Override
+        public String toString()
+        {
+            return label;
+        }
+    }
+
     @ConfigItem(
-            keyName = "onlyWhilePraying",
-            name = "Only while praying",
-            description = "Only show the low and really low warnings while at least one prayer is active. Does not affect the out of prayer warning",
+            keyName = "visibilityMode",
+            name = "When to hide",
+            description = "Stay on: warnings stay on while a prayer is active or you are in combat, then hide after the delay. Delay only: warnings hide after the delay no matter what. Only while praying: the low and really low warnings show only while a prayer is active. Hide in combat without prayer: all warnings hide while you fight with no prayer active. In every mode, turning a prayer on brings the warning back",
             position = 3,
             section = textSection
     )
-    default boolean onlyWhilePraying()
+    default VisibilityMode visibilityMode()
     {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "reappearOnPrayer",
-            name = "Reappear when prayer activated",
-            description = "When you turn a prayer on, the warning comes back and its hide timer starts over",
-            position = 4,
-            section = textSection
-    )
-    default boolean reappearOnPrayer()
-    {
-        return true;
-    }
-
-    @ConfigItem(
-            keyName = "stayOnWhilePraying",
-            name = "Stay on while praying or in combat",
-            description = "The warnings do not hide while a prayer is active or you are in combat. The hide delay starts once both stop",
-            position = 5,
-            section = textSection
-    )
-    default boolean stayOnWhilePraying()
-    {
-        return true;
-    }
-
-    @ConfigItem(
-            keyName = "hideInCombatWithoutPrayer",
-            name = "Hide in combat without prayer",
-            description = "Hides all warnings while you are in combat and no prayer is active. They come back when you turn a prayer on or the fight ends",
-            position = 6,
-            section = textSection
-    )
-    default boolean hideInCombatWithoutPrayer()
-    {
-        return false;
+        return VisibilityMode.STAY_ON;
     }
 
     // ---------- Low prayer ----------
@@ -388,13 +373,13 @@ public interface PrayerWarningTextConfig extends Config
     @ConfigItem(
             keyName = "boldText",
             name = "Bold text",
-            description = "Makes the warning text bold",
+            description = "Draws the warning text in bold. Turn off for the regular font",
             position = 3,
             section = extrasSection
     )
     default boolean boldText()
     {
-        return false;
+        return true;
     }
 
     @ConfigItem(
@@ -405,6 +390,18 @@ public interface PrayerWarningTextConfig extends Config
             section = extrasSection
     )
     default boolean blinkOutOfPrayer()
+    {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "showPoints",
+            name = "Show prayer points",
+            description = "Adds your current prayer points to the end of the warning text, for example LOW PRAYER 12",
+            position = 5,
+            section = extrasSection
+    )
+    default boolean showPoints()
     {
         return false;
     }
