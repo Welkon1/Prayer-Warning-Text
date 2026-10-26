@@ -20,6 +20,9 @@ A few extra options:
 - Hide all warnings while you're fighting with no prayer active.
 - Only show the low and really low warnings while a prayer is on.
 - Change the text, the height above your head, and how long you count as "in combat".
+- Use percentages instead of prayer points for the thresholds, so the defaults work at any Prayer level.
+- Change the text size and make the text bold.
+- Make the out-of-prayer warning blink.
 
 ## Notes
 
@@ -27,3 +30,4 @@ A few extra options:
 - The out-of-prayer hide delay can't go below 10 seconds.
 - You can put `{points}` in the warning text to show your current prayer points, for example `LOW PRAYER: {points}`.
 - The plugin only draws text. It doesn't click, type or change anything in the game.
+- Thresholds are in prayer points unless "Use percentages" is on.

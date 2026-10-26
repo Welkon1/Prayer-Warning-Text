@@ -3,6 +3,7 @@ package com.example;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Font;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
@@ -70,7 +71,10 @@ public class PrayerWarningTextOverlay extends Overlay
         int now = client.getTickCount();
 
         // Remember when the current tier began, so each tier's hide delay has a starting point
-        Tier tier = getTier(points);
+        // With percentages on, thresholds compare against a percent of your Prayer level
+        int maxPrayer = client.getRealSkillLevel(Skill.PRAYER);
+        int thresholdValue = (config.usePercentages() && maxPrayer > 0) ? (points * 100) / maxPrayer : points;
+        Tier tier = getTier(thresholdValue);
         if (tier != lastTier)
         {
             lastTier = tier;
@@ -148,11 +152,28 @@ public class PrayerWarningTextOverlay extends Overlay
         }
         text = text.replace("{points}", String.valueOf(points));
 
+        // Optional blink for the out of prayer warning: on for half a second, off for half a second
+        if (tier == Tier.OUT && config.blinkOutOfPrayer() && (System.currentTimeMillis() / 500) % 2 == 1)
+        {
+            return null;
+        }
+
+        // Only change the font if the player turned on a size or bold option
+        Font originalFont = graphics.getFont();
+        if (config.customTextSize() || config.boldText())
+        {
+            float size = config.customTextSize() ? config.textSize() : originalFont.getSize2D();
+            int style = config.boldText() ? Font.BOLD : originalFont.getStyle();
+            graphics.setFont(originalFont.deriveFont(style, size));
+        }
+
         Point location = player.getCanvasTextLocation(graphics, text, player.getLogicalHeight() + config.heightOffset());
         if (location != null)
         {
             OverlayUtil.renderTextLocation(graphics, location, text, color);
         }
+
+        graphics.setFont(originalFont);
 
         return null;
     }

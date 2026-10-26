@@ -45,12 +45,19 @@ public interface PrayerWarningTextConfig extends Config
     )
     String combatSection = "combatSection";
 
+    @ConfigSection(
+            name = "Extras",
+            description = "Optional features",
+            position = 5
+    )
+    String extrasSection = "extrasSection";
+
     // ---------- Text ----------
 
     @ConfigItem(
             keyName = "text",
             name = "Warning text",
-            description = "Text shown for the low and really low warnings. Use {points} to show your current prayer points, e.g. LOW PRAYER: {points}",
+            description = "Text shown for the low and really low warnings, use {points} to show your current prayer points, e.g. LOW PRAYER: {points}",
             position = 0,
             section = textSection
     )
@@ -62,7 +69,7 @@ public interface PrayerWarningTextConfig extends Config
     @ConfigItem(
             keyName = "outText",
             name = "Out of prayer text",
-            description = "Text shown when your prayer has run out. Use {points} to show your current prayer points",
+            description = "Text shown when your prayer has run out, use {points} to show your current prayer points",
             position = 1,
             section = textSection
     )
@@ -337,5 +344,68 @@ public interface PrayerWarningTextConfig extends Config
     default int combatSeconds()
     {
         return 10;
+    }
+
+    // ---------- Extras ----------
+
+    @ConfigItem(
+            keyName = "usePercentages",
+            name = "Use percentages",
+            description = "Thresholds become a percent of your max prayer instead of prayer points. For example, 20 means 20% of your Prayer level",
+            position = 0,
+            section = extrasSection
+    )
+    default boolean usePercentages()
+    {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "customTextSize",
+            name = "Custom text size",
+            description = "Turn on to use the text size below instead of the default size",
+            position = 1,
+            section = extrasSection
+    )
+    default boolean customTextSize()
+    {
+        return false;
+    }
+
+    @Range(min = 8, max = 40)
+    @ConfigItem(
+            keyName = "textSize",
+            name = "Text size",
+            description = "Size of the warning text. Only used when Custom text size is on",
+            position = 2,
+            section = extrasSection
+    )
+    default int textSize()
+    {
+        return 16;
+    }
+
+    @ConfigItem(
+            keyName = "boldText",
+            name = "Bold text",
+            description = "Makes the warning text bold",
+            position = 3,
+            section = extrasSection
+    )
+    default boolean boldText()
+    {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "blinkOutOfPrayer",
+            name = "Blink out of prayer warning",
+            description = "Makes the out of prayer warning flash on and off",
+            position = 4,
+            section = extrasSection
+    )
+    default boolean blinkOutOfPrayer()
+    {
+        return false;
     }
 }
