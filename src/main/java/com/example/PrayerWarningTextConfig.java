@@ -1,6 +1,7 @@
 package com.example;
 
 import java.awt.Color;
+import net.runelite.client.config.Alpha;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
@@ -46,11 +47,81 @@ public interface PrayerWarningTextConfig extends Config
     String combatSection = "combatSection";
 
     @ConfigSection(
-            name = "Extras",
-            description = "Optional features",
+            name = "Text Options",
+            description = "Optional text features: percentage thresholds, text size, bold, blink and showing prayer points",
             position = 5
     )
     String extrasSection = "extrasSection";
+
+    @ConfigSection(
+            name = "Alerts",
+            description = "Settings shared by the flash and sound alerts. Choose an alert for each warning in that warning's section. All alerts are off by default",
+            position = 6
+    )
+    String alertsSection = "alertsSection";
+
+    // ---------- Dropdown options ----------
+
+    enum VisibilityMode
+    {
+        STAY_ON("Stay on while praying or in combat"),
+        DELAY_ONLY("Hide after delay only"),
+        ONLY_WHILE_PRAYING("Only while praying"),
+        HIDE_IN_COMBAT("Hide in combat without prayer");
+
+        private final String label;
+
+        VisibilityMode(String label)
+        {
+            this.label = label;
+        }
+
+        @Override
+        public String toString()
+        {
+            return label;
+        }
+    }
+
+    enum FlashStyle
+    {
+        FULL_SCREEN("Full screen"),
+        BORDER("Border");
+
+        private final String label;
+
+        FlashStyle(String label)
+        {
+            this.label = label;
+        }
+
+        @Override
+        public String toString()
+        {
+            return label;
+        }
+    }
+
+    enum AlertMode
+    {
+        OFF("No alert"),
+        FLASH("Flash only"),
+        SOUND("Sound only"),
+        FLASH_AND_SOUND("Flash and sound");
+
+        private final String label;
+
+        AlertMode(String label)
+        {
+            this.label = label;
+        }
+
+        @Override
+        public String toString()
+        {
+            return label;
+        }
+    }
 
     // ---------- Text ----------
 
@@ -89,27 +160,6 @@ public interface PrayerWarningTextConfig extends Config
     default int heightOffset()
     {
         return 0;
-    }
-
-    enum VisibilityMode
-    {
-        STAY_ON("Stay on while praying or in combat"),
-        DELAY_ONLY("Hide after delay only"),
-        ONLY_WHILE_PRAYING("Only while praying"),
-        HIDE_IN_COMBAT("Hide in combat without prayer");
-
-        private final String label;
-
-        VisibilityMode(String label)
-        {
-            this.label = label;
-        }
-
-        @Override
-        public String toString()
-        {
-            return label;
-        }
     }
 
     @ConfigItem(
@@ -188,6 +238,18 @@ public interface PrayerWarningTextConfig extends Config
         return 10;
     }
 
+    @ConfigItem(
+            keyName = "lowAlert",
+            name = "Alert",
+            description = "Flashes the screen, plays your system notification sound, or both when your prayer first drops to this warning. By default alerts only play while RuneLite is not the active window. Flash settings and that option are in the Alerts section",
+            position = 5,
+            section = lowSection
+    )
+    default AlertMode lowAlert()
+    {
+        return AlertMode.OFF;
+    }
+
     // ---------- Really low prayer ----------
 
     @ConfigItem(
@@ -252,6 +314,18 @@ public interface PrayerWarningTextConfig extends Config
         return 10;
     }
 
+    @ConfigItem(
+            keyName = "reallyLowAlert",
+            name = "Alert",
+            description = "Flashes the screen, plays your system notification sound, or both when your prayer first drops to this warning. By default alerts only play while RuneLite is not the active window. Flash settings and that option are in the Alerts section",
+            position = 5,
+            section = reallyLowSection
+    )
+    default AlertMode reallyLowAlert()
+    {
+        return AlertMode.OFF;
+    }
+
     // ---------- Out of prayer ----------
 
     @ConfigItem(
@@ -314,6 +388,18 @@ public interface PrayerWarningTextConfig extends Config
     default int outOfCombatSeconds()
     {
         return 10;
+    }
+
+    @ConfigItem(
+            keyName = "outAlert",
+            name = "Alert",
+            description = "Flashes the screen, plays your system notification sound, or both when your prayer first runs out. By default alerts only play while RuneLite is not the active window. Flash settings and that option are in the Alerts section",
+            position = 5,
+            section = outSection
+    )
+    default AlertMode outAlert()
+    {
+        return AlertMode.OFF;
     }
 
     // ---------- Combat ----------
@@ -384,8 +470,8 @@ public interface PrayerWarningTextConfig extends Config
 
     @ConfigItem(
             keyName = "blinkOutOfPrayer",
-            name = "Blink out of prayer warning",
-            description = "Makes the out of prayer warning flash on and off",
+            name = "Blink out of prayer text",
+            description = "Makes the out of prayer warning text blink on and off. This is separate from the screen flash alert",
             position = 4,
             section = extrasSection
     )
@@ -402,6 +488,84 @@ public interface PrayerWarningTextConfig extends Config
             section = extrasSection
     )
     default boolean showPoints()
+    {
+        return false;
+    }
+
+    // ---------- Alerts ----------
+
+    @ConfigItem(
+            keyName = "flashStyle",
+            name = "Flash style",
+            description = "Full screen tints the whole game screen. Border only flashes a frame around the edges",
+            position = 0,
+            section = alertsSection
+    )
+    default FlashStyle flashStyle()
+    {
+        return FlashStyle.FULL_SCREEN;
+    }
+
+    @Range(min = 5, max = 200)
+    @ConfigItem(
+            keyName = "borderWidth",
+            name = "Border width (pixels)",
+            description = "How thick the flashing frame is. Only used when Flash style is Border",
+            position = 1,
+            section = alertsSection
+    )
+    default int borderWidth()
+    {
+        return 30;
+    }
+
+    @Alpha
+    @ConfigItem(
+            keyName = "flashColor",
+            name = "Flash color",
+            description = "Color and opacity of the flash. Use the slider in the color picker to change the opacity",
+            position = 2,
+            section = alertsSection
+    )
+    default Color flashColor()
+    {
+        return new Color(0x46FFFF00, true);
+    }
+
+    @Range(min = 1, max = 60)
+    @ConfigItem(
+            keyName = "flashSeconds",
+            name = "Flash time (seconds)",
+            description = "How long the flash lasts",
+            position = 3,
+            section = alertsSection
+    )
+    default int flashSeconds()
+    {
+        return 2;
+    }
+
+    @Range(min = 1, max = 3)
+    @ConfigItem(
+            keyName = "flashSpeed",
+            name = "Flash speed (per second)",
+            description = "How many times per second the flash blinks. Capped at 3",
+            position = 4,
+            section = alertsSection
+    )
+    default int flashSpeed()
+    {
+        return 2;
+    }
+
+    @ConfigItem(
+            keyName = "alertWhenFocused",
+            name = "Alert when game is focused",
+            description = "On: alerts also play while you are in the game window. Off (default): alerts only play while RuneLite is not the active window. Applies to both the flash and the sound",
+            position = 5,
+            section = alertsSection
+    )
+    default boolean alertWhenFocused()
     {
         return false;
     }

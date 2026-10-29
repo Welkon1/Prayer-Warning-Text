@@ -1,20 +1,27 @@
 package com.example;
 
+import com.example.PrayerWarningTextConfig.AlertMode;
+import com.example.PrayerWarningTextConfig.VisibilityMode;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
 import java.awt.Font;
+import java.awt.Graphics2D;
 import javax.inject.Inject;
 import net.runelite.api.Client;
+import net.runelite.api.GameState;
 import net.runelite.api.Player;
 import net.runelite.api.Point;
 import net.runelite.api.Prayer;
 import net.runelite.api.Skill;
+import net.runelite.client.Notifier;
+import net.runelite.client.config.FlashNotification;
+import net.runelite.client.config.Notification;
+import net.runelite.client.config.NotificationSound;
+import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.OverlayUtil;
-import com.example.PrayerWarningTextConfig.VisibilityMode;
 
 public class PrayerWarningTextOverlay extends Overlay
 {
@@ -29,17 +36,26 @@ public class PrayerWarningTextOverlay extends Overlay
 
     private final Client client;
     private final PrayerWarningTextConfig config;
+    private final Notifier notifier;
+    private final ClientUI clientUI;
+    private final PrayerWarningFlashOverlay flashOverlay;
 
     private int lastCombatTick = NEVER;
     private Tier lastTier = Tier.NONE;
     private int tierSinceTick = NEVER;
     private boolean wasPraying = false;
+    private Tier alertTier = Tier.NONE;
+    private boolean alertTierKnown = false;
 
     @Inject
-    private PrayerWarningTextOverlay(Client client, PrayerWarningTextConfig config)
+    private PrayerWarningTextOverlay(Client client, PrayerWarningTextConfig config, Notifier notifier,
+                                     ClientUI clientUI, PrayerWarningFlashOverlay flashOverlay)
     {
         this.client = client;
         this.config = config;
+        this.notifier = notifier;
+        this.clientUI = clientUI;
+        this.flashOverlay = flashOverlay;
         setPosition(OverlayPosition.DYNAMIC);
         setLayer(OverlayLayer.ABOVE_SCENE);
     }
@@ -57,6 +73,9 @@ public class PrayerWarningTextOverlay extends Overlay
         lastTier = Tier.NONE;
         tierSinceTick = NEVER;
         wasPraying = false;
+        alertTier = Tier.NONE;
+        alertTierKnown = false;
+        flashOverlay.stop();
     }
 
     @Override
@@ -71,10 +90,11 @@ public class PrayerWarningTextOverlay extends Overlay
         int points = client.getBoostedSkillLevel(Skill.PRAYER);
         int now = client.getTickCount();
 
-        // Remember when the current tier began, so each tier's hide delay has a starting point
         // With percentages on, thresholds compare against a percent of your Prayer level
         int maxPrayer = client.getRealSkillLevel(Skill.PRAYER);
         int thresholdValue = (config.usePercentages() && maxPrayer > 0) ? (points * 100) / maxPrayer : points;
+
+        // Remember when the current tier began, so each tier's hide delay has a starting point
         Tier tier = getTier(thresholdValue);
         if (tier != lastTier)
         {
@@ -154,7 +174,7 @@ public class PrayerWarningTextOverlay extends Overlay
             return null;
         }
 
-        // Keeps older custom text with {points} working, and adds the number if the toggle is on
+        // Keeps custom text with {points} working, and adds the number if the toggle is on
         boolean hasPlaceholder = text.contains("{points}");
         text = text.replace("{points}", String.valueOf(points));
         if (config.showPoints() && !hasPlaceholder)
@@ -238,6 +258,95 @@ public class PrayerWarningTextOverlay extends Overlay
         int combatEnded = lastCombatTick + combatTicks;
         int countdownStart = Math.max(tierSinceTick, combatEnded);
         return now - countdownStart <= delayTicks;
+    }
+
+    /** Called by the plugin every game tick. Fires alerts the first time you reach a warning. */
+    void onGameTick()
+    {
+        if (client.getGameState() != GameState.LOGGED_IN)
+        {
+            return;
+        }
+
+        int points = client.getBoostedSkillLevel(Skill.PRAYER);
+        int maxPrayer = client.getRealSkillLevel(Skill.PRAYER);
+        int value = (config.usePercentages() && maxPrayer > 0) ? (points * 100) / maxPrayer : points;
+        Tier tier = getTier(value);
+
+        Tier previous = alertTier;
+        alertTier = tier;
+
+        // Ignore the state you were already in when you logged in
+        boolean first = !alertTierKnown;
+        alertTierKnown = true;
+        if (first || tier == previous)
+        {
+            return;
+        }
+
+        if (tier.ordinal() > previous.ordinal())
+        {
+            fireAlert(tier);
+        }
+        else
+        {
+            // Prayer recovered, so the reason for the flash is gone
+            flashOverlay.stop();
+        }
+    }
+
+    private void fireAlert(Tier tier)
+    {
+        AlertMode mode;
+        String message;
+
+        switch (tier)
+        {
+            case LOW:
+                mode = config.lowAlert();
+                message = "Low prayer";
+                break;
+            case REALLY_LOW:
+                mode = config.reallyLowAlert();
+                message = "Really low prayer";
+                break;
+            case OUT:
+                mode = config.outAlert();
+                message = "Out of prayer";
+                break;
+            default:
+                return;
+        }
+
+        boolean flash = mode == AlertMode.FLASH || mode == AlertMode.FLASH_AND_SOUND;
+        boolean sound = mode == AlertMode.SOUND || mode == AlertMode.FLASH_AND_SOUND;
+
+        // A worse warning replaces any earlier flash
+        flashOverlay.stop();
+
+        if (clientUI.isFocused() && !config.alertWhenFocused())
+        {
+            return;
+        }
+
+        if (flash)
+        {
+            flashOverlay.start();
+        }
+
+        if (sound)
+        {
+            Notification soundOnly = Notification.ON
+                    .withEnabled(true)
+                    .withInitialized(true)
+                    .withOverride(true)
+                    .withTray(false)
+                    .withGameMessage(false)
+                    .withSound(NotificationSound.NATIVE)
+                    .withFlash(FlashNotification.DISABLED)
+                    .withSendWhenFocused(true);
+            notifier.notify(soundOnly, message);
+        }
     }
 
     /** True if you dealt or took a hit within the combat timeout. */

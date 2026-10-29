@@ -26,7 +26,7 @@ The **When to hide** setting controls how warnings go away. In every mode, turni
 - Combat means you dealt or took a hit within the combat timeout (10 seconds by default).
 - With percentages on, thresholds are a percent of your Prayer level rather than prayer points.
 - The out-of-prayer hide delay has a 10 second minimum.
-- Percentages, custom text size and blink are off by default.
+- Percentages, custom text size, text blink and alerts are off by default.
 
 ## Showing your prayer points
 
@@ -34,4 +34,10 @@ Turn on **Show prayer points** to add your current points to the end of the text
 
 To put the number somewhere else, type `{points}` in the warning text. For example, `{points} PRAYER LEFT` shows as `12 PRAYER LEFT`. This works in both the warning text and the out-of-prayer text, and the number is always your real prayer points, even with percentages on.
 
-The plugin only draws text. It doesn't click, type or change anything in the game.
+## Alerts
+
+Each warning has an **Alert** dropdown: no alert, flash only, sound only, or flash and sound. The alert fires once when you first reach that warning, even if the text is hidden.
+
+The flash can fill the screen or draw a border around it. Its color, opacity, time and speed are set in the Alerts section. A newer warning replaces the previous flash, and the flash stops early if your prayer goes back above the warning. By default, alerts only play while RuneLite isn't the active window. Turn on **Alert when game is focused** to also get them while you're in the game.
+
+The plugin only shows text, flashes and sounds. It doesn't click, type or change anything in the game.

@@ -6,6 +6,7 @@ import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.Player;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -29,17 +30,23 @@ public class PrayerWarningTextPlugin extends Plugin
     @Inject
     private PrayerWarningTextOverlay overlay;
 
+    @Inject
+    private PrayerWarningFlashOverlay flashOverlay;
+
     @Override
     protected void startUp()
     {
         overlay.reset();
         overlayManager.add(overlay);
+        overlayManager.add(flashOverlay);
     }
 
     @Override
     protected void shutDown()
     {
         overlayManager.remove(overlay);
+        overlayManager.remove(flashOverlay);
+        flashOverlay.stop();
     }
 
     @Subscribe
@@ -56,6 +63,12 @@ public class PrayerWarningTextPlugin extends Plugin
         {
             overlay.markCombat();
         }
+    }
+
+    @Subscribe
+    public void onGameTick(GameTick event)
+    {
+        overlay.onGameTick();
     }
 
     @Subscribe
