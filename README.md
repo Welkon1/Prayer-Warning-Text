@@ -36,7 +36,7 @@ To put the number somewhere else, type `{points}` in the warning text. For examp
 
 ## Alerts
 
-Each warning has an **Alert** dropdown: no alert, flash only, sound only, or flash and sound. The alert fires once when you first reach that warning, even if the text is hidden.
+Each warning has an **Alert** dropdown: no alert, flash only, notification only, or flash and notification. The notification is a standard RuneLite notification, so it follows your RuneLite notification settings (tray notification, sound and volume). The alert fires once when you first reach that warning, even if the text is hidden.
 
 The flash can fill the screen or draw a border around it. Its color, opacity, time and speed are set in the Alerts section. A newer warning replaces the previous flash, and the flash stops early if your prayer goes back above the warning. By default, alerts only play while RuneLite isn't the active window. Turn on **Alert when game is focused** to also get them while you're in the game.
 

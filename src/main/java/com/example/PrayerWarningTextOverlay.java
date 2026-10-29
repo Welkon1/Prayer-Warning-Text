@@ -17,6 +17,8 @@ import net.runelite.client.Notifier;
 import net.runelite.client.config.FlashNotification;
 import net.runelite.client.config.Notification;
 import net.runelite.client.config.NotificationSound;
+import java.awt.TrayIcon;
+import net.runelite.client.config.RequestFocusType;
 import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
@@ -336,15 +338,21 @@ public class PrayerWarningTextOverlay extends Overlay
 
         if (sound)
         {
-            Notification soundOnly = Notification.ON
-                    .withEnabled(true)
-                    .withInitialized(true)
-                    .withOverride(true)
-                    .withTray(false)
-                    .withGameMessage(false)
-                    .withSound(NotificationSound.NATIVE)
-                    .withFlash(FlashNotification.DISABLED)
-                    .withSendWhenFocused(true);
+            Notification soundOnly = new Notification(
+                    true,                          // enabled
+                    true,                          // initialized
+                    true,                          // override RuneLite's global notification settings
+                    false,                         // tray: no Windows notification
+                    TrayIcon.MessageType.NONE,     // tray icon type (unused)
+                    RequestFocusType.OFF,          // don't pull the window to the front
+                    NotificationSound.NATIVE,      // the system beep
+                    null,                          // sound file name (custom sounds only)
+                    100,                           // volume (custom sounds only)
+                    0,                             // timeout (tray only)
+                    false,                         // no chat message
+                    FlashNotification.DISABLED,    // RuneLite's own flash isn't used
+                    Color.RED,                     // flash color (unused)
+                    true);                         // send even when the game is focused
             notifier.notify(soundOnly, message);
         }
     }

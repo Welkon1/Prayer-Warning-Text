@@ -16,8 +16,8 @@ import net.runelite.client.ui.overlay.OverlayManager;
 
 @PluginDescriptor(
         name = "Prayer Warning Text",
-        description = "Color-coded overhead text for low prayer: three customizable tiers, with the out-of-prayer warning staying on in combat and clearing itself afterward",
-        tags = {"prayer", "low prayer", "overhead", "warning", "text", "notification"}
+        description = "Color-coded overhead text for low prayer: three customizable tiers, optional flash and sound alerts, and flexible rules for when the text hides",
+        tags = {"prayer", "low prayer", "overhead", "warning", "text", "notification", "alert", "flash", "sound"}
 )
 public class PrayerWarningTextPlugin extends Plugin
 {
