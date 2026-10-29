@@ -342,8 +342,8 @@ public class PrayerWarningTextOverlay extends Overlay
                     true,                          // enabled
                     true,                          // initialized
                     true,                          // override RuneLite's global notification settings
-                    false,                         // tray: no Windows notification
-                    TrayIcon.MessageType.NONE,     // tray icon type (unused)
+                    true,                         // tray: no Windows notification
+                    TrayIcon.MessageType.INFO,     // tray icon type (unused)
                     RequestFocusType.OFF,          // don't pull the window to the front
                     NotificationSound.NATIVE,      // the system beep
                     null,                          // sound file name (custom sounds only)
