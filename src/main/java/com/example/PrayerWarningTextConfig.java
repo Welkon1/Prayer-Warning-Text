@@ -83,6 +83,18 @@ public interface PrayerWarningTextConfig extends Config
         }
     }
 
+    @ConfigItem(
+            keyName = "ignoreSpellbookDrain",
+            name = "Ignore spellbook altar drain",
+            description = "Hides the warnings and alerts when the altar in the Ancient Pyramid drains your prayer to switch spellbooks. They come back once your prayer is restored",
+            position = 4,
+            section = textSection
+    )
+    default boolean ignoreSpellbookDrain()
+    {
+        return true;
+    }
+
     enum FlashStyle
     {
         FULL_SCREEN("Full screen"),

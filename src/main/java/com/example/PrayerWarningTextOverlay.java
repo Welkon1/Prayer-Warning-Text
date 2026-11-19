@@ -43,11 +43,17 @@ public class PrayerWarningTextOverlay extends Overlay
     private final PrayerWarningFlashOverlay flashOverlay;
 
     private int lastCombatTick = NEVER;
+    private int combatBeforeHit = NEVER;
+    private int pickpocketTick = NEVER;
+    private static final int PICKPOCKET_WINDOW_TICKS = 5;
     private Tier lastTier = Tier.NONE;
     private int tierSinceTick = NEVER;
     private boolean wasPraying = false;
     private Tier alertTier = Tier.NONE;
     private boolean alertTierKnown = false;
+    private boolean ignoringDrain = false;
+    private int spellbookSwitchTick = NEVER;
+    private static final int DRAIN_GRACE_TICKS = 5; // about 3 seconds
 
     @Inject
     private PrayerWarningTextOverlay(Client client, PrayerWarningTextConfig config, Notifier notifier,
@@ -65,19 +71,46 @@ public class PrayerWarningTextOverlay extends Overlay
     /** Called by the plugin when you deal or take a hit. */
     void markCombat()
     {
-        lastCombatTick = client.getTickCount();
+        int now = client.getTickCount();
+
+        // Damage from a failed pickpocket is not combat
+        int sincePickpocket = now - pickpocketTick;
+        if (sincePickpocket >= 0 && sincePickpocket <= PICKPOCKET_WINDOW_TICKS)
+        {
+            return;
+        }
+
+        combatBeforeHit = lastCombatTick;
+        lastCombatTick = now;
+    }
+
+    /** Called by the plugin when you start a pickpocket attempt or a pickpocket message appears. */
+    void markPickpocket()
+    {
+        int now = client.getTickCount();
+        pickpocketTick = now;
+
+        // If the failed pickpocket's hit was counted just before this, undo it
+        if (lastCombatTick == now)
+        {
+            lastCombatTick = combatBeforeHit;
+        }
     }
 
     /** Called by the plugin on logout or world hop. */
     void reset()
     {
         lastCombatTick = NEVER;
+        combatBeforeHit = NEVER;
+        pickpocketTick = NEVER;
         lastTier = Tier.NONE;
         tierSinceTick = NEVER;
         wasPraying = false;
         alertTier = Tier.NONE;
         alertTierKnown = false;
         flashOverlay.stop();
+        ignoringDrain = false;
+        spellbookSwitchTick = NEVER;
     }
 
     @Override
@@ -85,6 +118,12 @@ public class PrayerWarningTextOverlay extends Overlay
     {
         Player player = client.getLocalPlayer();
         if (player == null)
+        {
+            return null;
+        }
+
+        // Stay quiet after a spellbook altar drains your prayer
+        if (ignoringDrain)
         {
             return null;
         }
@@ -262,6 +301,38 @@ public class PrayerWarningTextOverlay extends Overlay
         return now - countdownStart <= delayTicks;
     }
 
+    /** Called by the plugin when you try to turn on a prayer or the quick-prayer orb. */
+    void markPrayerAttempt()
+    {
+        // Stay quiet during the altar quiet period
+        if (ignoringDrain)
+        {
+            return;
+        }
+
+        // Only matters at 0 prayer
+        if (client.getBoostedSkillLevel(Skill.PRAYER) > 0)
+        {
+            return;
+        }
+
+        // Restart the out-of-prayer text's hide timer, so it shows again
+        tierSinceTick = client.getTickCount();
+    }
+
+    /** Called by the plugin when the spellbook altar's message appears. */
+    void markSpellbookSwitch()
+    {
+        if (!config.ignoreSpellbookDrain())
+        {
+            return;
+        }
+
+        ignoringDrain = true;
+        spellbookSwitchTick = client.getTickCount();
+        flashOverlay.stop();
+    }
+
     /** Called by the plugin every game tick. Fires alerts the first time you reach a warning. */
     void onGameTick()
     {
@@ -281,6 +352,18 @@ public class PrayerWarningTextOverlay extends Overlay
         // Ignore the state you were already in when you logged in
         boolean first = !alertTierKnown;
         alertTierKnown = true;
+        // After a spellbook altar drained your prayer, stay quiet until it is restored
+        if (ignoringDrain)
+        {
+            if (client.getTickCount() - spellbookSwitchTick > DRAIN_GRACE_TICKS)
+            {
+                ignoringDrain = false;
+                // Treat the 0 prayer as old, so the text stays hidden until combat or a prayer brings it back
+                lastTier = tier;
+                tierSinceTick = NEVER;
+            }
+            return;
+        }
         if (first || tier == previous)
         {
             return;
@@ -342,10 +425,10 @@ public class PrayerWarningTextOverlay extends Overlay
                     true,                          // enabled
                     true,                          // initialized
                     true,                          // override RuneLite's global notification settings
-                    true,                         // tray: no Windows notification
-                    TrayIcon.MessageType.INFO,     // tray icon type (unused)
+                    true,                          // tray: show a desktop notification (it carries the sound)
+                    TrayIcon.MessageType.INFO,     // tray icon type
                     RequestFocusType.OFF,          // don't pull the window to the front
-                    NotificationSound.NATIVE,      // the system beep
+                    NotificationSound.NATIVE,      // the system notification sound
                     null,                          // sound file name (custom sounds only)
                     100,                           // volume (custom sounds only)
                     0,                             // timeout (tray only)

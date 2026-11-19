@@ -13,6 +13,10 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.api.ChatMessageType;
+import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.MenuOptionClicked;
+import net.runelite.api.MenuAction;
 
 @PluginDescriptor(
         name = "Prayer Warning Text",
@@ -62,6 +66,47 @@ public class PrayerWarningTextPlugin extends Plugin
         if (event.getActor() == local || event.getHitsplat().isMine())
         {
             overlay.markCombat();
+        }
+    }
+
+    @Subscribe
+    public void onMenuOptionClicked(MenuOptionClicked event)
+    {
+        // Trying to turn on a prayer or the quick-prayer orb shows the warning again at 0 prayer
+        if (event.getMenuAction() == MenuAction.CC_OP
+                && "Activate".equals(event.getMenuOption()))
+        {
+            overlay.markPrayerAttempt();
+        }
+        // Clicking Pickpocket starts a pickpocket attempt, which can end in stun damage
+        if ("Pickpocket".equalsIgnoreCase(event.getMenuOption()))
+        {
+            overlay.markPickpocket();
+        }
+    }
+
+    @Subscribe
+    public void onChatMessage(ChatMessage event)
+    {
+        if (event.getType() != ChatMessageType.GAMEMESSAGE)
+        {
+            return;
+        }
+
+        String message = event.getMessage();
+        String lower = message.toLowerCase();
+
+        // Pickpocket messages also mark the attempt, in case the stun damage lands later
+        if (lower.contains("pick") && lower.contains("pocket"))
+        {
+            overlay.markPickpocket();
+        }
+
+        // The Ancient Pyramid altar drains all prayer when it switches your spellbook
+        if (message.contains("You feel a strange wisdom fill your mind")
+                || message.contains("You feel a strange drain upon your memory"))
+        {
+            overlay.markSpellbookSwitch();
         }
     }
 

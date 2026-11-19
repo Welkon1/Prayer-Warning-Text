@@ -26,7 +26,9 @@ The **When to hide** setting controls how warnings go away. In every mode, turni
 - Combat means you dealt or took a hit within the combat timeout (10 seconds by default).
 - With percentages on, thresholds are a percent of your Prayer level rather than prayer points.
 - The out-of-prayer hide delay has a 10 second minimum.
-- Percentages, custom text size, text blink and alerts are off by default.
+- Percentages, custom text size, text blink and alerts are off by default. 
+- Damage from a failed pickpocket doesn't count as combat.
+- The warnings and alerts stay quiet when the Ancient Pyramid altar drains your prayer to switch spellbooks, until your prayer is restored. This can be turned off.
 
 ## Showing your prayer points
 
